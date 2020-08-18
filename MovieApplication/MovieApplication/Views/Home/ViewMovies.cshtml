@@ -1,0 +1,107 @@
+﻿@{
+    ViewBag.Title = "Movies";
+}
+<h2>@ViewBag.Title.</h2>
+<h3>@ViewBag.Message</h3>
+
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script src="~/Scripts/react/react.js"></script>
+<script src="~/Scripts/react/react-dom.js"></script>
+<script src="~/Scripts/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-router/4.0.0-0/react-router.js"></script>
+<script src="https://unpkg.com/react-router-dom/umd/react-router-dom.min.js"></script>
+
+@*This page displays the information regarding the various movies in the database.
+    It is the main page of the web app*@
+
+<div id="grid"></div>
+
+<script type="text/babel">
+
+    interface GetMovieDataState{
+        movieList: MovieData[];
+        loading: boolean;
+    }
+
+    class GetMovies extends React.Component<GetMovieDataState>
+    {
+        @*Constructor initialises the functions and data that will be used throughout the script in the file*@
+        constructor(props){
+            super(props);
+            this.state = {movieList: [], loading: true };
+            
+            fetch(this.props.url)
+            .then(response => response.json())
+            .then(data => {
+               this.setState({ movieList: data, loading: false }) 
+            });
+            
+            this.deleteMovie = this.deleteMovie.bind(this);
+            this.updateMovie = this.updateMovie.bind(this);
+        }
+        
+        render(){
+            let contents = this.state.loading
+            ? <p><em>Loading...</em></p>
+            : this.renderMovieTable(this.state.movieList);
+
+            return <div>
+                {contents}
+            </div>;
+        }
+
+        @*deleteMovie is called when the delete button is pressed on a movie. It displays a popup 
+            asking for validation before making a fetch() request to delete the data*@
+        deleteMovie(id: number, name: string){
+            if (!confirm("Do you want to delete Movie: " + name))  
+                return;
+            else {
+                var url = "Delete/" + id;
+                fetch(url)
+                    .then(data => {
+                    this.setState(  
+                        {  
+                            movieList: this.state.movieList.filter((rec) => {  
+                                return (rec.Id != id);  
+                                })  
+                            });  
+                    });  
+                }  
+          }
+        
+        @*updateMovie opens a new window which allows you to edit the information of a movie being displayed*@
+        updateMovie(id: number){
+            window.open("/Home/UpdateMovie/" + id);
+        }
+        
+        @*renderMovieTable simply displays the data stored in the format of a table*@
+        renderMovieTable(movieList: MovieData[]){
+            return (<table className="table  table-responsive">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Genre</th>
+                        <th>Director</th>
+                        <th>Rating</th>
+                        <th>      </th>
+                        <th>      </th>
+                     </tr>
+                </thead>
+                <tbody>
+                    {movieList.map(movie =>
+                    <tr key={movie.Id}>
+                        <td>{movie.Name}</td>
+                        <td>{movie.Genre}</td>
+                        <td>{movie.Director}</td>
+                        <td>{movie.Rating}</td>
+                        <td><a className="action" onClick={(id) => this.updateMovie(movie.Id)}>Edit</a></td>
+                        <td><a className="action" onClick={(id) => this.deleteMovie(movie.Id, movie.Name)}>Delete</a></td>
+                    </tr>
+                    )}
+                </tbody>
+            </table>);
+        }
+    }
+        ReactDOM.render(<GetMovies url="/Home/GetMovieList"/>, document.getElementById('grid'))
+</script>

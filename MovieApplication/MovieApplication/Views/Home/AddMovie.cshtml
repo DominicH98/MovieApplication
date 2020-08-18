@@ -1,0 +1,73 @@
+﻿@{
+    ViewBag.Title = "Add a New Movie";
+}
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script src="~/Scripts/react/react.js"></script>
+<script src="~/Scripts/react/react-dom.js"></script>
+<script src="~/Scripts/bootstrap.min.js"></script>
+<script src="~/Scripts/bootstrap.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+
+@*This page gives you the ability to input the data to add a new movie entry to the database
+    It can be accessed on the main navigation bar of the web app*@
+
+<div id="grid"></div>
+
+<script type="text/babel">
+    class InputData extends React.Component{
+        constructor(props){
+            super(props);
+            this.submitData = this.submitData.bind(this);
+            }
+
+            @*submitData sends the data to be added in the form of a POST request.*@
+        
+        submitData(e){
+            e.preventDefault();
+            var formData = new FormData();
+            formData.append('Name',this.name.value);
+            formData.append('Genre',this.genre.value);
+            formData.append('Director',this.director.value);
+            formData.append('Rating',this.rating.value);
+            
+                fetch(this.props.url, {
+                method: 'POST',
+                body: formData,
+                }).then(function(response) {
+                        console.log(response.ok);
+                        if(response.ok){
+                             confirm("Movie has been Added");
+                        }
+                   });
+        }
+            @*render returns the various text fields to enter the new data.
+            Upon pressing submit submitData() is called*@
+        render(){
+            return(
+                    <form onSubmit={this.submitData}>
+                        <h2>@ViewBag.Title</h2>
+                        <p>Name:</p>
+                        <input id="name" type="text" ref={(name) => this.name = name} />
+
+                        <p><br />Genre:</p>
+                        <input id="genre" type="text" ref={(genre) => this.genre = genre} />
+                        <br />
+
+                        <p><br />Director:</p>
+                        <input id="director" type="text" ref={(director) => this.director = director} />
+                        <br />
+
+                        <p><br />Rating:</p>
+                        <input id="rating" type="number" ref={(rating) => this.rating = rating} />
+
+                        <p>
+                            <br />
+                            <input type="submit" />
+                        </p>
+                    </form>
+             );
+        }
+    }
+    ReactDOM.render(<InputData url="/Home/Create"/>, document.getElementById('grid'))
+</script>
